@@ -6,6 +6,8 @@
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
+/********************************/
+/*   Abstact Sensor class       */
 class Sensor {
 public:
 
@@ -26,7 +28,8 @@ public:
     Convert state to sensor
     Compute Jacobian -- only required if sensor is extended
   */
-  virtual VectorXd state_projection(const VectorXd &state) = 0;
+  virtual VectorXd state_to_measure(const VectorXd &state) = 0;
+  virtual VectorXd measure_to_state(const VectorXd &meas) = 0;
   virtual MatrixXd Jacobian(const VectorXd &state) = 0;
 
   // Method to return the predicted measurments from the state
@@ -46,6 +49,8 @@ private:
    to keep track of the order z_predicted() and H() are called. */
 };
 
+/********************/
+/*   Radar Sensor   */
 class Radar : public Sensor
 {
 public:
@@ -54,11 +59,14 @@ public:
   // Destructor
   ~Radar();
 
-  VectorXd state_projection(const VectorXd &state);
+  VectorXd state_to_measure(const VectorXd &state);
+  VectorXd measure_to_state(const VectorXd &meas)
   MatrixXd Jacobian(const VectorXd &state);
 
 };
 
+/********************/
+/*   Lidar Sensor   */
 class Lidar : public Sensor
 {
 public:
@@ -68,7 +76,8 @@ public:
   ~Lidar();
 
   // These are not used
-  VectorXd state_projection(const VectorXd &state);
+  VectorXd state_to_measure(const VectorXd &state);
+  VectorXd measure_to_state(const VectorXd &meas)
   MatrixXd Jacobian(const VectorXd &state);
 
 };
