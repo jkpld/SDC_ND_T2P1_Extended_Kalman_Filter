@@ -1,22 +1,15 @@
 #include "Sensors.h"
 #include "Eigen/Dense"
+#include <math.h>
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
-/********************************/
-/*   Sensor class definitions   */
+/*******************************************************************************
+/*   Sensor class definitions
+/******************************************************************************/
 Sensor::Sensor() {}
 Sensor::~Sensor() {}
-
-VectorXd Sensor::z_predicted(const VectorXd &state) {
-  if (sensor_type == Sensor::linear) {
-    z_pred_ = H_*state;
-  } else {
-    z_pred_ = state_projection(state);
-  }
-  return z_pred_
-}
 
 MatrixXd Sensor::H(const VectorXd &state) {
   if (sensor_type == Sensor::extended) {
@@ -25,70 +18,95 @@ MatrixXd Sensor::H(const VectorXd &state) {
   return Hj_
 }
 
-/********************************/
-/*   Radar class definitions    */
+/*******************************************************************************
+/*   Radar class definitions
+/***************************************** -pi and pi*************************************/
 Radar::Radar() {
   sensory_type = Sensor::extended;
 
-  R = MatrixXd(3, 3);
-  R << 0.09, 0, 0,
-      0, 0.0009, 0,
-      0, 0, 0.09;
+  R = Eigen::DiagonalMatrix<double, 3>;
+  R << 0.09, 0.0009, 0.09;
 }
+
 Radar::~Radar() {}
 
-VectorXd Radar::state_projection(const VectorXd &state) {
+VectorXd Radar::state_to_measure(const VectorXd &state) {
+  double rx = state(0);
+  double ry = state(1);
+  double vx = state(2);
+  double vy = state(3);
+
+  double r = sqrt(rx*rx + ry*ry);
+  double phi = atan2(ry,rx)
+  double rdot = (rx*vx + ry*vy)/r;
+
+  VectorXd meas = VectorXd(3);
+  meas << r, phi, rdot;
+  return meas;
+}
+
+VectorXd Radar::measure_to_state(const VectorXd &meas) {
+  double r = meas(0);
+  double phi = meas(1);
+
+  VectorXd state = VectorXd::Zero(4);
+  state(0) = r*cos(phi);
+  state(1) = r*sin(phi);
   return state;
 }
+
 MatrixXd Radar::Jacobian(const VectorXd &state) {
-  Hj_ = MatrixXd::Zeros(3,4);
+  Hj_ = MatrixXd(3,4);
   //recover state parameters
-	float px = x_state(0);
-	float py = x_state(1);
-	float vx = x_state(2);
-	float vy = x_state(3);
+	double rx = x_state(0);
+	double ry = x_state(1);
+	double vx = x_state(2);
+	double vy = x_state(3);
 
   //pre-compute a set of terms to avoid repeated calculation
-	float c1 = px*px+py*py;
-	float c2 = sqrt(c1);
-	float c3 = (c1*c2);
+	double r2 = rx*rx + ry*ry;
+	double r = sqrt(r2);
+	double r3 = r2*r;
 
   //check division by zero
-	if(fabs(c1) < 0.0001){
+	if(fabs(r2) < 0.0001){
 		cout << "CalculateJacobian () - Error - Division by Zero" << endl;
 		return Hj_;
 	}
 
-  float cross = vx*py - vy*px;
+  double cross = vx*ry - vy*rx;
 
 	//compute the Jacobian matrix
-	Hj_ << (px/c2), (py/c2), 0, 0,
-		  -(py/c1), (px/c1), 0, 0,
-		  py*cross/c3, -px*cross/c3, px/c2, py/c2;
+	Hj_ << (rx/r), (ry/r), 0, 0,
+		  -(ry/r2), (rx/r2), 0, 0,
+		  ry*cross/r3, -rx*cross/r3, rx/r, ry/r;
 
   return Hj_;
 }
 
-/********************************/
-/*   Lidar class definitions    */
+/*******************************************************************************
+/*   Lidar class definitions
+/******************************************************************************/
 Lidar::Lidar()
 {
   sensory_type = Sensor::linear;
 
-  R = MatrixXd(2, 2);
-  H_ = MatrixXd(2, 4);
+  R = Eigen::DiagonalMatrix<double, 2>;
+  R << 0.0225, 0.0225;
 
-  R << 0.0225, 0,
-      0, 0.0225;
+  H_ = MatrixXd::Zero(2, 4);
+  H(0,0) = 1;
+  H(1,1) = 1;
 
-  H_ << 1, 0, 0, 0,
-		    0, 1, 0, 0;
   Hj_ = H_;
 }
 Lidar::~Lidar() {}
 
-// These are not used
-VectorXd Lidar::state_projection(const VectorXd &state) {
+VectorXd Lidar::measure_to_state(const VectorXd &meas) {
+  return H_.transpose() * meas;
+}
+
+VectorXd Lidar::state_to_measure(const VectorXd &state) {
   return H_*state;
 }
 MatrixXd Lidar::Jacobian(const VectorXd &state) {
