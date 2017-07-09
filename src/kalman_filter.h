@@ -47,7 +47,7 @@ public:
    * @param sensor A derived Sensor class that defines sensor specific
    *   parameters: H, R, Jacobian
    */
-  void Update(const Eigen::VectorXd &z, const Sensor &sensor);
+  void Update(const Eigen::VectorXd &z, Sensor &sensor);
 
 private:
   Eigen::MatrixXd I_;

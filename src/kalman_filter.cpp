@@ -21,16 +21,16 @@ void KalmanFilter::Init(VectorXd &x_in, MatrixXd &P_in, MatrixXd &F_in,
 void KalmanFilter::Predict() {
   // Predict new state and covariance
   x_ = F_*x_;
-  P_ = F_ * P * F_.transpose() + Q_;
+  P_ = F_ * P_ * F_.transpose() + Q_;
 }
 
-void KalmanFilter::Update(const VectorXd &z, const Sensor &sensor) {
+void KalmanFilter::Update(const VectorXd &z, Sensor &sensor) {
 
   // Compute filter gain
   MatrixXd H = sensor.H(z);
   MatrixXd Ht = H.transpose();
   MatrixXd S = H * P_ * Ht + sensor.R;
-  MatrixXd K = P * Ht * S.inverse();
+  MatrixXd K = P_ * Ht * S.inverse();
 
   // difference between measurment and prediction
   VectorXd dz = z - sensor.state_to_measure(x_);
