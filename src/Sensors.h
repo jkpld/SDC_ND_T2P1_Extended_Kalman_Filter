@@ -57,7 +57,7 @@ public:
   ~Radar();
 
   VectorXd state_to_measure(const VectorXd &state);
-  VectorXd measure_to_state(const VectorXd &meas)
+  VectorXd measure_to_state(const VectorXd &meas);
   MatrixXd Jacobian(const VectorXd &state);
 
 };
@@ -74,7 +74,7 @@ public:
 
   // These are not used
   VectorXd state_to_measure(const VectorXd &state);
-  VectorXd measure_to_state(const VectorXd &meas)
+  VectorXd measure_to_state(const VectorXd &meas);
   MatrixXd Jacobian(const VectorXd &state);
 
 };

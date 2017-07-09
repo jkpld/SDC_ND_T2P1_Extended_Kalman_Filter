@@ -37,6 +37,9 @@ public:
   */
   KalmanFilter ekf_;
 
+  Radar radar_;
+  Lidar lidar_;
+
 private:
   // check whether the tracking toolbox was initialized or not (first measurement)
   bool is_initialized_;
@@ -44,10 +47,7 @@ private:
   // previous timestamp
   long long previous_timestamp_;
 
-  // tool object used to compute Jacobian and RMSE
-  Tools tools;
-  Radar radar_;
-  Lidar lidar_;
+
   // Eigen::MatrixXd R_laser_;
   // Eigen::MatrixXd R_radar_;
   // Eigen::MatrixXd H_laser_;

@@ -50,10 +50,10 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   if (!is_initialized_) {
     // convert from measurment space to state space.
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
-      ekf_.x_ = radar_.measure_to_state(measurment_pack.raw_measurements_);
+      ekf_.x_ = radar_.measure_to_state(measurement_pack.raw_measurements_);
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
-      ekf_.x_ = lidar_.measure_to_state(measurment_pack.raw_measurements_);
+      ekf_.x_ = lidar_.measure_to_state(measurement_pack.raw_measurements_);
     }
 
     // initialize state covariance matrix P
@@ -89,10 +89,10 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    */
 
   if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
-    ekf_.Update(measurment_pack.raw_measurements_, radar_)
+    ekf_.Update(measurement_pack.raw_measurements_, radar_);
   } else {
     // Laser updates
-    ekf_.Update(measurment_pack.raw_measurements_, lidar_)
+    ekf_.Update(measurement_pack.raw_measurements_, lidar_);
   }
 
   // print the output
