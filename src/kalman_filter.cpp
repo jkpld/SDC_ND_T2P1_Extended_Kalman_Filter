@@ -1,4 +1,7 @@
 #include "kalman_filter.h"
+#include <iostream>
+
+using namespace std;
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -16,6 +19,13 @@ void KalmanFilter::Init(VectorXd &x_in, MatrixXd &P_in, MatrixXd &F_in,
 
   I_ = MatrixXd::Identity(P_.rows(), P_.cols());
 
+  cout << "Initialized Kalman Filter" << endl;
+  cout << x_ << endl;
+  cout << P_ << endl;
+  cout << F_ << endl;
+  cout << Q_ << endl;
+  cout << I_ << endl;
+
 }
 
 void KalmanFilter::Predict() {
@@ -25,6 +35,11 @@ void KalmanFilter::Predict() {
 }
 
 void KalmanFilter::Update(const VectorXd &z, Sensor &sensor) {
+
+  cout << "In KalmanFilter::Update()" << endl << endl;
+  cout << "Measurment:" << endl;
+  cout << z;
+  cout << "Prediction from state" << endl;
 
   // Compute filter gain
   MatrixXd H = sensor.H(z);

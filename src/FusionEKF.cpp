@@ -17,10 +17,10 @@ FusionEKF::~FusionEKF() {}
 
 // State transition matrix.
 inline MatrixXd FusionEKF::F(double dt) {
-  MatrixXd F = MatrixXd::Identity(4,4);
-  F(0,2) = dt;
-  F(1,3) = dt;
-  return F;
+  MatrixXd F_ = MatrixXd::Identity(4,4);
+  F_(0,2) = dt;
+  F_(1,3) = dt;
+  return F_;
 }
 
 // Process covariance matrix.
@@ -48,18 +48,25 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    *  Initialization
    ****************************************************************************/
   if (!is_initialized_) {
+
     // convert from measurment space to state space.
+    VectorXd x_ = VectorXd::Zero(4);
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
-      ekf_.x_ = radar_.measure_to_state(measurement_pack.raw_measurements_);
+      x_ = radar_.measure_to_state(measurement_pack.raw_measurements_);
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
-      ekf_.x_ = lidar_.measure_to_state(measurement_pack.raw_measurements_);
+      x_ = lidar_.measure_to_state(measurement_pack.raw_measurements_);
     }
 
     // initialize state covariance matrix P
-  	ekf_.P_ = MatrixXd::Zero(4, 4);
-    ekf_.P_.diagonal() << 1, 1, 1000, 1000;
+  	MatrixXd P_ = MatrixXd::Zero(4, 4);
+    P_.diagonal() << 1, 1, 1000, 1000;
 
+    // Initialize Kalman Filter
+    MatrixXd F_ = F(0);
+    MatrixXd Q_ = Q(0);
+
+    ekf_.Init(x_, P_, F_, Q_);
     // done initializing, no need to predict or update
     is_initialized_ = true;
     return;
@@ -70,13 +77,17 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    ****************************************************************************/
 
   // Update F and Q using dt
-  double dt = measurement_pack.timestamp_ - previous_timestamp_;
+  double dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;
   previous_timestamp_ = measurement_pack.timestamp_;
 
   ekf_.F_ = F(dt);
   ekf_.Q_ = Q(dt);
 
   ekf_.Predict();
+  // print the output
+  cout << endl << "Predict" << endl << endl;
+  cout << "x_ = " << ekf_.x_ << endl;
+  cout << "P_ = " << ekf_.P_ << endl;
 
   /*****************************************************************************
    *  Update
