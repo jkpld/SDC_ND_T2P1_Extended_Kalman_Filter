@@ -1,31 +1,19 @@
 #include "Sensors.h"
 #include "Eigen/Dense"
 #include <math.h>
+#include <iostream>
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
 /*******************************************************************************
-/*   Sensor class definitions
-/******************************************************************************/
-Sensor::Sensor() {}
-Sensor::~Sensor() {}
-
-MatrixXd Sensor::H(const VectorXd &state) {
-  if (sensor_type == Sensor::extended) {
-    Hj_ = Jacobian(state);
-  }
-  return Hj_
-}
-
-/*******************************************************************************
 /*   Radar class definitions
-/***************************************** -pi and pi*************************************/
+/******************************************************************************/
 Radar::Radar() {
-  sensory_type = Sensor::extended;
+  sensor_type = Sensor::extended;
 
-  R = Eigen::DiagonalMatrix<double, 3>;
-  R << 0.09, 0.0009, 0.09;
+  R = MatrixXd::Zero(3,3);
+  R.diagonal() << 0.09, 0.0009, 0.09;
 }
 
 Radar::~Radar() {}
@@ -37,7 +25,7 @@ VectorXd Radar::state_to_measure(const VectorXd &state) {
   double vy = state(3);
 
   double r = sqrt(rx*rx + ry*ry);
-  double phi = atan2(ry,rx)
+  double phi = atan2(ry,rx);
   double rdot = (rx*vx + ry*vy)/r;
 
   VectorXd meas = VectorXd(3);
@@ -58,10 +46,10 @@ VectorXd Radar::measure_to_state(const VectorXd &meas) {
 MatrixXd Radar::Jacobian(const VectorXd &state) {
   Hj_ = MatrixXd(3,4);
   //recover state parameters
-	double rx = x_state(0);
-	double ry = x_state(1);
-	double vx = x_state(2);
-	double vy = x_state(3);
+	double rx = state(0);
+	double ry = state(1);
+	double vx = state(2);
+	double vy = state(3);
 
   //pre-compute a set of terms to avoid repeated calculation
 	double r2 = rx*rx + ry*ry;
@@ -70,7 +58,7 @@ MatrixXd Radar::Jacobian(const VectorXd &state) {
 
   //check division by zero
 	if(fabs(r2) < 0.0001){
-		cout << "CalculateJacobian () - Error - Division by Zero" << endl;
+		std::cout << "CalculateJacobian () - Error - Division by Zero" << std::endl;
 		return Hj_;
 	}
 
@@ -89,14 +77,14 @@ MatrixXd Radar::Jacobian(const VectorXd &state) {
 /******************************************************************************/
 Lidar::Lidar()
 {
-  sensory_type = Sensor::linear;
+  sensor_type = Sensor::linear;
 
-  R = Eigen::DiagonalMatrix<double, 2>;
-  R << 0.0225, 0.0225;
+  R = MatrixXd::Zero(2,2);
+  R.diagonal() << 0.0225, 0.0225;
 
   H_ = MatrixXd::Zero(2, 4);
-  H(0,0) = 1;
-  H(1,1) = 1;
+  H_(0,0) = 1;
+  H_(1,1) = 1;
 
   Hj_ = H_;
 }
