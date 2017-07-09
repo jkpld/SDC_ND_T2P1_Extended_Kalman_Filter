@@ -32,9 +32,6 @@ public:
   virtual VectorXd measure_to_state(const VectorXd &meas) = 0;
   virtual MatrixXd Jacobian(const VectorXd &state) = 0;
 
-  // Method to return the predicted measurments from the state
-  VectorXd z_predicted(const VectorXd &state);
-
   // Method to return H matrix for covariance calculations
   MatrixXd H(const VectorXd &state);
 
