@@ -50,6 +50,9 @@ public:
     return Hj_;
   };
 private:
+  /* Method to be implimented by subclasses:
+    Compute Jacobian -- only required if sensor is extended
+  */
   virtual MatrixXd Jacobian(const VectorXd &state) = 0;
 };
 
