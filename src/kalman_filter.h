@@ -2,6 +2,7 @@
 #define KALMAN_FILTER_H_
 #include "Eigen/Dense"
 #include "Sensors.h"
+#include <string>
 
 
 class KalmanFilter {
@@ -48,6 +49,8 @@ public:
    *   parameters: H, R, Jacobian
    */
   void Update(const Eigen::VectorXd &z, Sensor &sensor);
+
+  void PrintInfo(std::string name);
 
 private:
   Eigen::MatrixXd I_;

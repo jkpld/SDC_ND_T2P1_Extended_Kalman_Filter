@@ -18,15 +18,31 @@ Radar::Radar() {
 
 Radar::~Radar() {}
 
-VectorXd Radar::state_to_measure(const VectorXd &state) {
-  double rx = state(0);
-  double ry = state(1);
-  double vx = state(2);
-  double vy = state(3);
+VectorXd Radar::meas_state_difference(const VectorXd &meas, const VectorXd &state) {
+  VectorXd dz = meas - state_to_measure(state);
 
-  double r = sqrt(rx*rx + ry*ry);
-  double phi = atan2(ry,rx);
-  double rdot = (rx*vx + ry*vy)/r;
+  // Extract the angle
+  double phi = dz(1);
+
+  // Wrap to (-pi, +pi]
+  phi = fmod(phi + M_PI, 2*M_PI);
+  if (phi < 0)
+    phi += 2*M_PI;
+  phi -= M_PI;
+
+  dz(1) = phi;
+  return dz;
+}
+
+VectorXd Radar::state_to_measure(const VectorXd &state) {
+  float rx = state(0);
+  float ry = state(1);
+  float vx = state(2);
+  float vy = state(3);
+
+  float r = sqrt(rx*rx + ry*ry);
+  float phi = atan2(ry,rx);
+  float rdot = (rx*vx + ry*vy)/r;
 
   VectorXd meas = VectorXd(3);
   meas << r, phi, rdot;
@@ -34,8 +50,8 @@ VectorXd Radar::state_to_measure(const VectorXd &state) {
 }
 
 VectorXd Radar::measure_to_state(const VectorXd &meas) {
-  double r = meas(0);
-  double phi = meas(1);
+  float r = meas(0);
+  float phi = meas(1);
 
   VectorXd state = VectorXd::Zero(4);
   state(0) = r*cos(phi);
@@ -46,15 +62,15 @@ VectorXd Radar::measure_to_state(const VectorXd &meas) {
 MatrixXd Radar::Jacobian(const VectorXd &state) {
   Hj_ = MatrixXd(3,4);
   //recover state parameters
-	double rx = state(0);
-	double ry = state(1);
-	double vx = state(2);
-	double vy = state(3);
+	float rx = state(0);
+	float ry = state(1);
+	float vx = state(2);
+	float vy = state(3);
 
   //pre-compute a set of terms to avoid repeated calculation
-	double r2 = rx*rx + ry*ry;
-	double r = sqrt(r2);
-	double r3 = r2*r;
+	float r2 = rx*rx + ry*ry;
+	float r = sqrt(r2);
+	float r3 = r2*r;
 
   //check division by zero
 	if(fabs(r2) < 0.0001){
@@ -62,7 +78,7 @@ MatrixXd Radar::Jacobian(const VectorXd &state) {
 		return Hj_;
 	}
 
-  double cross = vx*ry - vy*rx;
+  float cross = vx*ry - vy*rx;
 
 	//compute the Jacobian matrix
 	Hj_ << (rx/r), (ry/r), 0, 0,
@@ -89,6 +105,11 @@ Lidar::Lidar()
   Hj_ = H_;
 }
 Lidar::~Lidar() {}
+
+VectorXd Lidar::meas_state_difference(const VectorXd &meas, const VectorXd &state) {
+  VectorXd dz = meas - state_to_measure(state);
+  return dz;
+}
 
 VectorXd Lidar::measure_to_state(const VectorXd &meas) {
   return H_.transpose() * meas;

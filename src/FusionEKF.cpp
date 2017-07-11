@@ -16,7 +16,7 @@ FusionEKF::FusionEKF() {
 FusionEKF::~FusionEKF() {}
 
 // State transition matrix.
-inline MatrixXd FusionEKF::F(double dt) {
+inline MatrixXd FusionEKF::F(float dt) {
   MatrixXd F_ = MatrixXd::Identity(4,4);
   F_(0,2) = dt;
   F_(1,3) = dt;
@@ -24,10 +24,10 @@ inline MatrixXd FusionEKF::F(double dt) {
 }
 
 // Process covariance matrix.
-inline MatrixXd FusionEKF::Q(double dt) {
-  double noise_ax = 9;
-  double noise_ay = 9;
-  double dt2o2 = dt*dt/2;
+inline MatrixXd FusionEKF::Q(float dt) {
+  float noise_ax = 9;
+  float noise_ay = 9;
+  float dt2o2 = dt*dt/2;
 
   Eigen::DiagonalMatrix<double, 2> Qnu(noise_ax, noise_ay);
 
@@ -42,20 +42,21 @@ inline MatrixXd FusionEKF::Q(double dt) {
 }
 
 
-void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
+void FusionEKF::ProcessMeasurement(MeasurementPackage &measurement_pack) {
 
   /*****************************************************************************
    *  Initialization
    ****************************************************************************/
   if (!is_initialized_) {
-
     // convert from measurment space to state space.
     VectorXd x_ = VectorXd::Zero(4);
-    if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
-      x_ = radar_.measure_to_state(measurement_pack.raw_measurements_);
-    }
-    else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
-      x_ = lidar_.measure_to_state(measurement_pack.raw_measurements_);
+    switch (measurement_pack.sensor_type_) {
+     case MeasurementPackage::RADAR:
+       x_ = radar_.measure_to_state(measurement_pack.raw_measurements_);
+       break;
+     case MeasurementPackage::LASER:
+       x_ = lidar_.measure_to_state(measurement_pack.raw_measurements_);
+       break;
     }
 
     // initialize state covariance matrix P
@@ -67,6 +68,10 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     MatrixXd Q_ = Q(0);
 
     ekf_.Init(x_, P_, F_, Q_);
+
+    // initialize time stamp
+    previous_timestamp_ = measurement_pack.timestamp_;
+
     // done initializing, no need to predict or update
     is_initialized_ = true;
     return;
@@ -77,36 +82,23 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    ****************************************************************************/
 
   // Update F and Q using dt
-  double dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;
+  float dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;
   previous_timestamp_ = measurement_pack.timestamp_;
 
   ekf_.F_ = F(dt);
   ekf_.Q_ = Q(dt);
 
   ekf_.Predict();
-  // print the output
-  cout << endl << "Predict" << endl << endl;
-  cout << "x_ = " << ekf_.x_ << endl;
-  cout << "P_ = " << ekf_.P_ << endl;
 
   /*****************************************************************************
    *  Update
    ****************************************************************************/
 
-  /**
-   TODO:
-     * Use the sensor type to perform the update step.
-     * Update the state and covariance matrices.
-   */
-
   if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
+    // Radar updates
     ekf_.Update(measurement_pack.raw_measurements_, radar_);
   } else {
     // Laser updates
     ekf_.Update(measurement_pack.raw_measurements_, lidar_);
   }
-
-  // print the output
-  cout << "x_ = " << ekf_.x_ << endl;
-  cout << "P_ = " << ekf_.P_ << endl;
 }

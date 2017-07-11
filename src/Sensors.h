@@ -3,7 +3,6 @@
 
 #include "Eigen/Dense"
 
-
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
@@ -33,9 +32,12 @@ public:
   virtual ~Sensor() {};
 
   /* Methods to be implimented by subclasses:
-    Convert state to sensor
+    Compute difference between measurment and predicted measurement from state
+    Convert from state to measurment
+    Convert from measurment to state
     Compute Jacobian -- only required if sensor is extended
   */
+  virtual VectorXd meas_state_difference(const VectorXd &meas, const VectorXd &state) = 0;
   virtual VectorXd state_to_measure(const VectorXd &state) = 0;
   virtual VectorXd measure_to_state(const VectorXd &meas) = 0;
   virtual MatrixXd Jacobian(const VectorXd &state) = 0;
@@ -60,10 +62,10 @@ public:
   // Destructor
   ~Radar();
 
+  VectorXd meas_state_difference(const VectorXd &meas, const VectorXd &state);
   VectorXd state_to_measure(const VectorXd &state);
   VectorXd measure_to_state(const VectorXd &meas);
   MatrixXd Jacobian(const VectorXd &state);
-
 };
 
 /********************/
@@ -76,11 +78,10 @@ public:
   // Destructor
   ~Lidar();
 
-  // These are not used
+  VectorXd meas_state_difference(const VectorXd &meas, const VectorXd &state);
   VectorXd state_to_measure(const VectorXd &state);
   VectorXd measure_to_state(const VectorXd &meas);
   MatrixXd Jacobian(const VectorXd &state);
-
 };
 
 
