@@ -40,7 +40,7 @@ public:
   virtual VectorXd meas_state_difference(const VectorXd &meas, const VectorXd &state) = 0;
   virtual VectorXd state_to_measure(const VectorXd &state) = 0;
   virtual VectorXd measure_to_state(const VectorXd &meas) = 0;
-  virtual MatrixXd Jacobian(const VectorXd &state) = 0;
+
 
   // Method to return H matrix for covariance calculations
   MatrixXd H(const VectorXd &state) {
@@ -49,7 +49,8 @@ public:
     }
     return Hj_;
   };
-
+private:
+  virtual MatrixXd Jacobian(const VectorXd &state) = 0;
 };
 
 /********************/
@@ -65,6 +66,7 @@ public:
   VectorXd meas_state_difference(const VectorXd &meas, const VectorXd &state);
   VectorXd state_to_measure(const VectorXd &state);
   VectorXd measure_to_state(const VectorXd &meas);
+private:
   MatrixXd Jacobian(const VectorXd &state);
 };
 
@@ -81,6 +83,7 @@ public:
   VectorXd meas_state_difference(const VectorXd &meas, const VectorXd &state);
   VectorXd state_to_measure(const VectorXd &state);
   VectorXd measure_to_state(const VectorXd &meas);
+private:
   MatrixXd Jacobian(const VectorXd &state);
 };
 
