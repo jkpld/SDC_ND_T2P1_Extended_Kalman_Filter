@@ -35,7 +35,6 @@ public:
     Compute difference between measurment and predicted measurement from state
     Convert from state to measurment
     Convert from measurment to state
-    Compute Jacobian -- only required if sensor is extended
   */
   virtual VectorXd meas_state_difference(const VectorXd &meas, const VectorXd &state) = 0;
   virtual VectorXd state_to_measure(const VectorXd &state) = 0;
