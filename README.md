@@ -27,7 +27,7 @@ Additionally, the `Sensor` class has a method `H(state)` that returns the H matr
 The abstract `Sensor` class is used to define two different concrete classes, `Radar` and `Lidar`. These classes implement the virtual functions listed above.
 
 ### `FusionEKF` class
-This class handles taking in new measurements and initializing or updating the Kalman filter. The methods include
+This class handles fusing data from multiple sensors to track a object. The methods include
 * `ProcessMeasurement(MeasurementPackage)`: primary method that initializes the Kalman filter using the first measurement, and then updates it using subsequent measurements.
 * `F(dt)`: This method takes in the time since the last measurement and returns the state transition matrix `F`.
 * `Q(dt)`: This method takes in the time since the last measurement and returns the process covariance matrix `Q`.
