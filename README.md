@@ -23,7 +23,7 @@ The abstract methods include
 
 Additionally, the `Sensor` class has a method `H(state)` that returns the H matrix to be used for computing the covariance matrix.
 
-#### Concrete `Sensor`s
+#### Concrete `Sensors`
 The abstract `Sensor` class is used to define two different concrete classes, `Radar` and `Lidar`. These classes implement the virtual functions listed above.
 
 ### `FusionEKF` class
